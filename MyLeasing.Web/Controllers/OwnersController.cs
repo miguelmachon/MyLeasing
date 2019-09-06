@@ -267,8 +267,58 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EditProperty(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            };
 
+            var property = await _datacontext.Properties
+                .Include(p => p.Owner)
+                .Include(p => p.PropertyType)
+                .FirstOrDefaultAsync( p => p.Id == id.Value);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var model = _converterHelper.ToPropertyViewModelAsync(property);
+
+
+
+
+            return View(model);
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditProperty(PropertyViewModel model)
+        {
+
+            if (ModelState.IsValid)
+            {
+
+                var property = await _converterHelper.ToPropertyAsync(model, false);
+
+                _datacontext.Properties.Update(property);
+
+                await _datacontext.SaveChangesAsync();
+
+                return RedirectToAction($"Details/{model.OwnerId}");
+
+
+            };
+
+
+
+
+            return View(model);
+
+        }
 
 
     }
-    }
+}
